@@ -1789,22 +1789,20 @@ public class Gestor {
 			//HABILIDADES
 			{
 				ResultSet result = Basedatos.select("SELECT * FROM habilidad");
-				int i = 0;
 				
 				while(result.next())
-					this.habilidades[i++] = new Habilidad(
+					if(!this.anyadirHabilidad(new Habilidad(
 							result.getString("nombre"),
 							result.getInt("vida"),
 							result.getInt("energia"),
 							result.getString("tipo")
-						);
-				this.num_array[0] = i;
+						)))
+						System.out.println("Error al añadir la habilidad");
 			}
 			
 			//PERSONAJES
 			{
 				ResultSet per = Basedatos.select("SELECT * FROM personaje");
-				int i = 0;
 				while(per.next()) {
 					Habilidad[] habilidades = new Habilidad[per.getInt("num_habilidades")];
 					
@@ -1821,7 +1819,7 @@ public class Gestor {
 					}
 					
 						
-					this.personajes[i++] = new Personaje(
+					if(!this.anyadirPersonaje(new Personaje(
 							per.getString("nombre"),
 							per.getString("clase"),
 							per.getInt("vida_max"),
@@ -1832,10 +1830,10 @@ public class Gestor {
 							habilidades,
 							new Item[5],
 							per.getBoolean("npc"),
-							per.getBoolean("hostil"));
+							per.getBoolean("hostil"))))
+						System.out.println("Error al añadir un personaje");;
 				
 				}
-				this.num_array[2] = i;
 			}
 			
 		}catch(SQLException e) {
