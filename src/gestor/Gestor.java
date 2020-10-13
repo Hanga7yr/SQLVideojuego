@@ -1,6 +1,9 @@
 package gestor;
 
 import objects.*;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Gestor {
@@ -1763,4 +1766,82 @@ public class Gestor {
 		
 	}
 
+	public void escribirEnBaseDatos() {
+		Basedatos.update("DELETE FROM personaje_habilidades WHERE true");
+	
+		Basedatos.update("DELETE FROM habilidad WHERE true");
+		Basedatos.update("DELETE FROM personaje WHERE true");
+		
+		for(int i = 0; i < this.num_array[0]; i++)
+			Basedatos.insert("habilidad(nombre, tipo, energia, vida) VALUES " + this.habilidades[i]);
+		
+		for(int i = 0; i < this.num_array[2]; i++) {
+			Basedatos.insert("personaje(nombre, clase, vida_max, vida_actual, energia_max, energia_actual, monedas, npc, hostil, num_habilidades, num_equipo) VALUES " + this.personajes[i]);
+			
+			for(int j = 0; j < this.personajes[i].getNumHab(); j++)
+				Basedatos.insert("personaje_habilidades(personaje, habilidad) VALUES ('" + this.personajes[i].getNombre() + "', '" + this.personajes[i].getHabilidades()[j].getNombre() + "')");
+			
+		}
+	}
+	
+	public void leerDeBaseDatos(){
+		try {
+			//HABILIDADES
+			{
+				ResultSet result = Basedatos.select("SELECT * FROM habilidad");
+				int i = 0;
+				
+				while(result.next())
+					this.habilidades[i++] = new Habilidad(
+							result.getString("nombre"),
+							result.getInt("vida"),
+							result.getInt("energia"),
+							result.getString("tipo")
+						);
+				this.num_array[0] = i;
+			}
+			
+			//PERSONAJES
+			{
+				ResultSet per = Basedatos.select("SELECT * FROM personaje");
+				int i = 0;
+				while(per.next()) {
+					Habilidad[] habilidades = new Habilidad[per.getInt("num_habilidades")];
+					
+					
+					{
+						ResultSet habper = Basedatos.select(
+								"SELECT habilidad FROM personaje_habilidades WHERE personaje = '" + per.getString("nombre") + "'");
+						int nHab = 0;
+						while(habper.next())
+							for(int iterHab = 0; iterHab < this.num_array[0]; iterHab++)
+								if(habper.getString("habilidad").equals(this.habilidades[iterHab].getNombre()))
+									habilidades[nHab++] = this.habilidades[iterHab];
+							
+					}
+					
+						
+					this.personajes[i++] = new Personaje(
+							per.getString("nombre"),
+							per.getString("clase"),
+							per.getInt("vida_max"),
+							per.getInt("energia_max"),
+							per.getInt("vida_actual"),
+							per.getInt("energia_actual"),
+							per.getInt("monedas"),
+							habilidades,
+							new Item[5],
+							per.getBoolean("npc"),
+							per.getBoolean("hostil"));
+				
+				}
+				this.num_array[2] = i;
+			}
+			
+		}catch(SQLException e) {
+			System.out.println("SQL mensaje: " + e.getMessage());
+	      	System.out.println("SQL Estado: " + e.getSQLState());
+	      	System.out.println("SQL codigo especifico: " + e.getErrorCode());
+		}
+	}
 }

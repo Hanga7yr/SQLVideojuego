@@ -71,4 +71,12 @@ public class Habilidad {
 		return nombre.equals(_habilidad.nombre);
 	}
 
+	@Override
+	public String toString() {
+		String result = "";
+		
+		result += "('" + nombre + "', '" + tipo + "', " + energia + ", " + vida + ")";
+		
+		return result;
+	}
 }

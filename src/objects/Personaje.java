@@ -324,5 +324,25 @@ public class Personaje {
 		return nombre.equals(_personaje.nombre);
 	}
 	
+	@Override
+	public String toString() {
+		String result = "";
+
+		result += 	"('" 	+ nombre + "', '"
+						+ clase + "', "
+						+ vida_max + ", "
+						+ vida_actual + ", "
+						+ energia_max + ", "
+						+ energia_actual + ", "
+						+ monedas + ", "
+						+ npc + ", "
+						+ hostil + ", "
+						+ num_habilidades + ", "
+						+ num_equipo
+					+ ")";
+		
+		
+		return result;
+	}
 	
 }
