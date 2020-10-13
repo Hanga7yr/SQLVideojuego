@@ -1785,6 +1785,20 @@ public class Gestor {
 	}
 	
 	public void leerDeBaseDatos(){
+		//Init to cero
+		this.habilidades = new Habilidad[num_arrays];
+		this.items = new Item[num_arrays];
+		this.personajes = new Personaje[num_arrays];
+		this.zonas = new Zona[num_arrays];
+		this.misiones = new Mision[num_arrays];
+		this.users = new Usuario[num_arrays];
+		
+		this.num_array = new int[6];
+		
+		for(int i = 0; i < num_array.length; i++)
+			this.num_array[i] = 0;
+		
+		//Lectura
 		try {
 			//HABILIDADES
 			{

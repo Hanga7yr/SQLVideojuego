@@ -18,9 +18,9 @@ public class Main {
 		g.escribirEnBaseDatos();
 		System.out.println("Leer");
 		Gestor p = new Gestor();
-		p.leerDeBaseDatos();
+		g.leerDeBaseDatos();
 		
-		p.mostrarHabilidades();
-		p.mostrarPersonajes();
+		g.mostrarHabilidades();
+		g.mostrarPersonajes();
 	}
 }
