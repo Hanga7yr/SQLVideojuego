@@ -1768,19 +1768,31 @@ public class Gestor {
 
 	public void escribirEnBaseDatos() {
 		Basedatos.update("DELETE FROM personaje_habilidades WHERE true");
+		Basedatos.update("DELETE FROM item_personaje WHERE true");
+		Basedatos.update("DELETE FROM item_habilidad WHERE true");
 	
 		Basedatos.update("DELETE FROM habilidad WHERE true");
 		Basedatos.update("DELETE FROM personaje WHERE true");
 		
+		Basedatos.update("DELETE FROM consumible WHERE true");
+		Basedatos.update("DELETE FROM armadura WHERE true");
+		Basedatos.update("DELETE FROM arma WHERE true");
+		
+		Basedatos.update("DELETE FROM item WHERE true");
+		
 		for(int i = 0; i < this.num_array[0]; i++)
 			Basedatos.insert("habilidad(nombre, tipo, energia, vida) VALUES " + this.habilidades[i]);
+		
+		for(int i = 0; i < this.num_array[1]; i++)
+			Basedatos.insert(this.items[i]);
 		
 		for(int i = 0; i < this.num_array[2]; i++) {
 			Basedatos.insert("personaje(nombre, clase, vida_max, vida_actual, energia_max, energia_actual, monedas, npc, hostil, num_habilidades, num_equipo) VALUES " + this.personajes[i]);
 			
 			for(int j = 0; j < this.personajes[i].getNumHab(); j++)
 				Basedatos.insert("personaje_habilidades(personaje, habilidad) VALUES ('" + this.personajes[i].getNombre() + "', '" + this.personajes[i].getHabilidades()[j].getNombre() + "')");
-			
+			for(int j = 0; j < this.personajes[i].getNumEquipo(); j++)
+				Basedatos.insert("item_personaje(personaje, item) VALUES ('" + this.personajes[i].getNombre() + "', '" + this.personajes[i].getEquipo()[j].getNombre() + "')");
 		}
 	}
 	
@@ -1814,13 +1826,64 @@ public class Gestor {
 						System.out.println("Error al añadir la habilidad");
 			}
 			
+			//Items
+			{
+				ResultSet temp = Basedatos.select("SELECT nombre, item_type FROM item");
+				while(temp.next()) {
+					ResultSet item = Basedatos.select("SELECT * FROM item RIGHT OUTER JOIN " + temp.getString("item_type").toLowerCase() + " ON item.nombre = " + temp.getString("item_type").toLowerCase() + ".nombre_item");
+					item.next();
+					
+					Habilidad[] habilidades = new Habilidad[item.getInt("acciones")];
+					{
+						ResultSet habItem = Basedatos.select("SELECT habilidad FROM item_habilidad WHERE item = '" + item.getString("nombre") + "'");
+						int nHab = 0;
+						while(habItem.next()) {
+							for(int iterHab = 0; iterHab < this.num_array[0]; iterHab++)
+								if(habItem.getString("habilidad").equals(this.habilidades[iterHab].getNombre()))
+									habilidades[nHab++] = this.habilidades[iterHab];
+						}
+					}
+					
+					boolean error = false;
+					if(temp.getString("item_type").equals("Armadura")) {
+						if(!this.anyadirItem(new Armadura(
+									item.getString("nombre"),
+									item.getInt("valor"),
+									habilidades,
+									item.getInt("armadura"),
+									item.getInt("peso")
+								)))
+							error = true;
+					}else if(temp.getString("item_type").equals("Arma")) {
+						if(!this.anyadirItem(new Arma(
+								item.getString("nombre"),
+								item.getInt("valor"),
+								habilidades,
+								item.getInt("agravio"),
+								item.getInt("peso")
+							)))
+						error = true;
+					}else if(temp.getString("item_type").equals("Consumible")) {
+						if(!this.anyadirItem(new Consumible(
+								item.getString("nombre"),
+								item.getInt("valor"),
+								habilidades,
+								item.getInt("cantidad")
+							)))
+						error = true;
+					}	
+					if(error)	System.out.println("Error al añadir el item");
+				}
+			}
+			
 			//PERSONAJES
 			{
 				ResultSet per = Basedatos.select("SELECT * FROM personaje");
 				while(per.next()) {
 					Habilidad[] habilidades = new Habilidad[per.getInt("num_habilidades")];
+					Item[] items = new Item[per.getInt("num_equipo")];
 					
-					
+					//Habilidades
 					{
 						ResultSet habper = Basedatos.select(
 								"SELECT habilidad FROM personaje_habilidades WHERE personaje = '" + per.getString("nombre") + "'");
@@ -1829,6 +1892,18 @@ public class Gestor {
 							for(int iterHab = 0; iterHab < this.num_array[0]; iterHab++)
 								if(habper.getString("habilidad").equals(this.habilidades[iterHab].getNombre()))
 									habilidades[nHab++] = this.habilidades[iterHab];
+							
+					}
+					
+					//Items
+					{
+						ResultSet itemPer = Basedatos.select(
+								"SELECT item FROM item_personaje WHERE personaje = '" + per.getString("nombre") + "'");
+						int nHab = 0;
+						while(itemPer.next())
+							for(int iterItem = 0; iterItem < this.num_array[1]; iterItem++)
+								if(itemPer.getString("item").equals(this.items[iterItem].getNombre()))
+									items[nHab++] = this.items[iterItem];
 							
 					}
 					
@@ -1842,7 +1917,7 @@ public class Gestor {
 							per.getInt("energia_actual"),
 							per.getInt("monedas"),
 							habilidades,
-							new Item[5],
+							items,
 							per.getBoolean("npc"),
 							per.getBoolean("hostil"))))
 						System.out.println("Error al añadir un personaje");;
