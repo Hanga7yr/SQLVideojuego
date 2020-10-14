@@ -30,13 +30,7 @@ CREATE TABLE personaje_habilidades(
     CONSTRAINT per_fk FOREIGN KEY (personaje) REFERENCES personaje(nombre),
     CONSTRAINT hab_fk FOREIGN KEY (habilidad) REFERENCES habilidad(nombre)
 );
-/*
-	protected String nombre;
-	
-	protected int valor;
-	
-	protected Habilidad acciones[];
-	private int num_acciones;*/
+
 CREATE TABLE item(
 	nombre VARCHAR(20) NOT NULL PRIMARY KEY,
     item_type ENUM("Consumible", "Arma", "Armadura") NOT NULL,
